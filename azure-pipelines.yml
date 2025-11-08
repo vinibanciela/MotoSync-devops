@@ -34,8 +34,8 @@ variables:
   - name: tag
     value: "$(Build.BuildId)"
 
-  - name: resourceGroupACR-ACI
-    value: "rg-motosync-acr"
+  - name: resourceGroupACI
+    value: "rg-motosync-aci"
 
   - name: containerName
     value: "motosync-aci"
@@ -150,7 +150,7 @@ stages:
                 echo "Criando/atualizando container no ACI com a nova imagem..."
 
                 az container create \
-                --resource-group "$(resourceGroupACR-ACI)" \
+                --resource-group "$(resourceGroupACI)" \
                 --name "$(containerName)" \
                 --image "$(containerRegistry)/$(imageRepository):$(tag)" \
                 --registry-login-server "$(containerRegistry)" \
