@@ -111,6 +111,7 @@ cd MotoSync
 
 utilizar a branch #pro-gui
 ```
+
 A aplicação sobe em http://localhost:8081/login
 
 ## Web (Thymeleaf):
@@ -121,7 +122,7 @@ Login: http://localhost:8081/login
 
 Cadastro (operador): http://localhost:8081/register
 
-## API: http://localhost:8081/api/**
+## API: http://localhost:8081/api/\*\*
 
 Login: POST /api/auth/login
 
@@ -145,7 +146,7 @@ As telas Thymeleaf (navbar/footer/head) servem de prova funcional das regras e i
 
 401 → faltou header Authorization.
 
-CSRF em formulários web → certifique-se de incluir o token ${_csrf.parameterName} / ${_csrf.token}.
+CSRF em formulários web → certifique-se de incluir o token ${\_csrf.parameterName} / ${\_csrf.token}.
 
 Oracle não conecta → confira porta/serviço (ex.: XEPDB1) e credenciais.
 
