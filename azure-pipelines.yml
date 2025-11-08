@@ -104,7 +104,7 @@ stages:
               buildType: "current"
               downloadType: "single"
               artifactName: "jar"
-              downloadPath: "$(Build.SourcesDirectory)/build/libs"
+              downloadPath: "$(Build.SourcesDirectory)/build/libs/jar"
           - task: Docker@2
             displayName: "Docker build & push (imagem da API)"
             inputs:
