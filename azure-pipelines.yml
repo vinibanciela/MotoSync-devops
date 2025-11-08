@@ -37,7 +37,7 @@ stages:
               versionSpec: "21"
               jdkArchitectureOption: "x64"
               jdkSourceOption: "PreInstalled"
-          - task: Gradle@2
+          - task: Gradle@3
             displayName: "Gradle build (compila + testa)"
             inputs:
               workingDirectory: "$(System.DefaultWorkingDirectory)"
