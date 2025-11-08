@@ -13,35 +13,13 @@ resources:
 variables:
   - group: "java-api-prod-secrets"
 
-  - name: dockerRegistryServiceConnection
-    value: "sc-acr-motosync"
-
-  - name: azureSubscription
-    value: "sc-azure-motosync"
-
-  - name: vmImageName
-    value: "ubuntu-latest"
-
-  - name: imageRepository
-    value: "repo-acr-motosync"
-
-  - name: containerRegistry
-    value: "acrmotosync.azurecr.io"
+  - group: "java-api-prod-comuns"
 
   - name: dockerfilePath
     value: "$(Build.SourcesDirectory)/Dockerfile"
 
   - name: tag
     value: "$(Build.BuildId)"
-
-  - name: resourceGroupACI
-    value: "rg-motosync-aci"
-
-  - name: containerName
-    value: "motosync-aci"
-
-  - name: containerDnsName
-    value: "motosync-rm558117"
 
 stages:
   - stage: CI
@@ -151,15 +129,15 @@ stages:
 
                 az container create \
                 --resource-group "$(resourceGroupACI)" \
-                --name "$(containerName)" \
+                --name "$(containerNameACI)" \
                 --image "$(containerRegistry)/$(imageRepository):$(tag)" \
                 --registry-login-server "$(containerRegistry)" \
-                --registry-username "$(ACR_USERNAME)" \
-                --registry-password "$(ACR_PASSWORD)" \
-                --dns-name-label "$(containerDnsName)" \
-                --os-type Linux \
-                --cpu 1 \
-                --memory 1.5 \
+                --registry-username "$(usernameACR)" \
+                --registry-password "$(passwordACR)" \
+                --dns-name-label "$(containerDnsNameACI)" \
+                --os-type "$(systemOperacionalACI)" \
+                --cpu "$(cpuACI)" \
+                --memory "$(memoryACI)" \
                 --ports 8081 \
                 --environment-variables \
                   SPRING_PROFILES_ACTIVE=production \
