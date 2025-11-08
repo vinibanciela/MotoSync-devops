@@ -104,7 +104,31 @@ stages:
               buildType: "current"
               downloadType: "single"
               artifactName: "jar"
-              downloadPath: "$(Build.SourcesDirectory)/build/libs/jar"
+              downloadPath: "$(Build.SourcesDirectory)/build/libs"
+
+          - task: Bash@3
+            displayName: "Mover .jar para o local correto"
+            inputs:
+              targetType: "inline"
+              script: |
+                echo "Organizando arquivos para o build do Docker..."
+
+                # Adicionando logs para ajudar na análise
+                echo "--- Conteúdo de build/libs/ (Antes da movimentação):"
+                ls -lR $(System.DefaultWorkingDirectory)/build/libs/
+
+                # Move o(s) arquivo(s) .jar de build/libs/jar/ para build/libs/
+                echo "Movendo $(System.DefaultWorkingDirectory)/build/libs/jar/*.jar para $(System.DefaultWorkingDirectory)/build/libs/"
+                mv $(System.DefaultWorkingDirectory)/build/libs/jar/*.jar $(System.DefaultWorkingDirectory)/build/libs/
+
+                # Opcional: remove o diretório 'jar' vazio
+                echo "Limpando diretório 'jar' vazio."
+                rmdir $(System.DefaultWorkingDirectory)/build/libs/jar
+
+                echo "--- Conteúdo de build/libs/ (Depois da movimentação):"
+                ls -lR $(System.DefaultWorkingDirectory)/build/libs/
+                echo "Pronto para o build do Docker."
+
           - task: Docker@2
             displayName: "Docker build & push (imagem da API)"
             inputs:
