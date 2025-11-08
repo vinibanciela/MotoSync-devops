@@ -1,0 +1,149 @@
+# ===========================================
+# azure-pipelines.yml - MotoSync API
+# CI: Gradle build + tests + artefato
+# CD: Download .jar -> Docker build/push -> Deploy ACI
+# ===========================================
+
+trigger:
+  - main
+
+resources:
+  - repo: self
+
+variables:
+  - group: "java-api-prod-secrets"
+
+  - name: dockerRegistryServiceConnection
+    value: "sc-acr-motosync"
+
+  - name: azureSubscription
+    value: "sc-azure-motosync"
+
+  - name: vmImageName
+    value: "ubuntu-latest"
+
+  - name: imageRepository
+    value: "repo-acr-motosync"
+
+  - name: containerRegistry
+    value: "acrmotosync.azurecr.io"
+
+  - name: dockerfilePath
+    value: "$(Build.SourcesDirectory)/Dockerfile"
+
+  - name: tag
+    value: "$(Build.BuildId)"
+
+  - name: resourceGroupACI
+    value: "rg-motosync-aci"
+
+  - name: containerName
+    value: "motosync-aci"
+
+  - name: containerDnsName
+    value: "motosync-rm558117"
+
+stages:
+  - stage: CI
+    displayName: "CI - Build, Testes e Artefato"
+    jobs:
+      - job: BuildAndTest
+        displayName: "Gradle Build + Test + Publish"
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - checkout: self
+          - task: JavaToolInstaller@0
+            displayName: "Instalar JDK 21"
+            inputs:
+              versionSpec: "21"
+              jdkArchitectureOption: "x64"
+              jdkSourceOption: "PreInstalled"
+          - task: Gradle@2
+            displayName: "Gradle build (compila + testa)"
+            inputs:
+              workingDirectory: "$(System.DefaultWorkingDirectory)"
+              gradleWrapperFile: "gradlew"
+              gradleOptions: "-Xmx3072m"
+              publishJUnitResults: true
+              testResultsFiles: "**/build/test-results/test/TEST-*.xml"
+              tasks: "build"
+            env:
+              DB_URL: $(DB_URL)
+              DB_USER: $(DB_USER)
+              DB_PASSWORD: $(DB_PASSWORD)
+              DB_DRIVER: $(DB_DRIVER)
+              DB_DIALECT: $(DB_DIALECT)
+              APP_JWT_SECRET: $(APP_JWT_SECRET)
+              GITHUB_CLIENT_ID: $(GITHUB_CLIENT_ID)
+              GITHUB_CLIENT_SECRET: $(GITHUB_CLIENT_SECRET)
+              GOOGLE_CLIENT_ID: $(GOOGLE_CLIENT_ID)
+              GOOGLE_CLIENT_SECRET: $(GOOGLE_CLIENT_SECRET)
+          - task: PublishBuildArtifacts@1
+            displayName: "Publicar artefato .jar"
+            condition: succeeded()
+            inputs:
+              PathtoPublish: "$(Build.SourcesDirectory)/build/libs"
+              ArtifactName: "jar"
+              publishLocation: "Container"
+
+  - stage: CD
+    displayName: "CD - Deploy no Azure Container Instance (ACI)"
+    dependsOn: CI
+    condition: succeeded()
+    jobs:
+      - job: Deploy
+        displayName: "Docker Build/Push + Deploy ACI"
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - checkout: self
+          - task: DownloadBuildArtifacts@0
+            displayName: "Baixar artefato .jar do CI"
+            inputs:
+              buildType: "current"
+              downloadType: "single"
+              artifactName: "jar"
+              downloadPath: "$(Build.SourcesDirectory)/build/libs"
+          - task: Docker@2
+            displayName: "Docker build & push (imagem da API)"
+            inputs:
+              command: "buildAndPush"
+              repository: "$(imageRepository)"
+              dockerfile: "$(dockerfilePath)"
+              buildContext: "$(Build.SourcesDirectory)"
+              containerRegistry: "$(dockerRegistryServiceConnection)"
+              tags: |
+                $(tag)
+                latest
+          - task: AzureCLI@2
+            displayName: "Deploy no Azure Container Instance (ACI)"
+            inputs:
+              azureSubscription: "$(azureSubscription)"
+              scriptType: "bash"
+              scriptLocation: "inlineScript"
+              inlineScript: |
+                echo "Criando/atualizando container no ACI com a nova imagem..."
+
+                az container create \
+                  --resource-group $(resourceGroupACI) \
+                  --name $(containerName) \
+                  --image $(containerRegistry)/$(imageRepository):$(tag) \
+                  --registry-login-server $(containerRegistry) \
+                  --registry-username $(ACR_USERNAME) \
+                  --registry-password $(ACR_PASSWORD) \
+                  --dns-name-label $(containerDnsName) \
+                  --ports 8081 \
+                  --environment-variables \
+                    SPRING_PROFILES_ACTIVE=production \
+                    DB_URL=$(DB_URL) \
+                    DB_USER=$(DB_USER) \
+                    DB_DRIVER=$(DB_DRIVER) \
+                    DB_DIALECT=$(DB_DIALECT) \
+                    GITHUB_CLIENT_ID=$(GITHUB_CLIENT_ID) \
+                    GOOGLE_CLIENT_ID=$(GOOGLE_CLIENT_ID) \
+                  --secure-environment-variables \
+                    DB_PASSWORD=$(DB_PASSWORD) \
+                    APP_JWT_SECRET=$(APP_JWT_SECRET) \
+                    GITHUB_CLIENT_SECRET=$(GITHUB_CLIENT_SECRET) \
+                    GOOGLE_CLIENT_SECRET=$(GOOGLE_CLIENT_SECRET)
