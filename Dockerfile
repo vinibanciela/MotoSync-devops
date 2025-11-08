@@ -1,28 +1,28 @@
-# Dockerfile - Runtime only (JDK 21, não-root)
+# Dockerfile - Runtime only (JDK 21, não-root) - V2 (eclipse-temurin)
 
-# Imagem oficial e otimizada
-FROM openjdk:21-jdk-slim
+# Requisito A: Imagem oficial e otimizada (eclipse-temurin com JRE/Alpine)
+FROM eclipse-temurin:21-jre-alpine
 
-# Define o profile de produção (não usa application-dev.properties)
+# Requisito E: Define o profile de produção
 ENV SPRING_PROFILES_ACTIVE=production
 
 WORKDIR /app
 
-# Cria grupo e usuário sem privilégios (não-root)
-RUN groupadd -r appgroup && useradd -r -g appgroup appuser
+# Requisito C: Cria grupo e usuário não-root (versão Alpine Linux)
+RUN addgroup -S appgroup && adduser -S -G appgroup appuser
 
-# Copia APENAS o JAR gerado pelo Gradle no CI
-# O pipeline garante que build/libs/ já existe antes do docker build
+# Copia APENAS o JAR gerado pelo Gradle
+# (Isto vai funcionar porque o seu '.\gradlew clean bootJar' já correu com sucesso)
 COPY build/libs/*.jar /app/app.jar
 
-# Ajusta permissões para o usuário não-root
+# Requisito C: Define permissões para o usuário não-root
 RUN chown -R appuser:appgroup /app
 
-# Troca para o usuário sem privilégios
+# Requisito C: Troca para o usuário sem privilégios
 USER appuser
 
-# Expõe a porta usada pela aplicação (configurada em application.properties)
+# Requisito D: Expõe a porta usada pela aplicação
 EXPOSE 8081
 
-# Executa a aplicação em primeiro plano (correto para Docker)
+# Requisito B: Executa a aplicação em primeiro plano
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
