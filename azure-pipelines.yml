@@ -34,8 +34,8 @@ variables:
   - name: tag
     value: "$(Build.BuildId)"
 
-  - name: resourceGroupACI
-    value: "rg-motosync-aci"
+  - name: resourceGroupACR-ACI
+    value: "rg-motosync-acr"
 
   - name: containerName
     value: "motosync-aci"
@@ -126,24 +126,24 @@ stages:
                 echo "Criando/atualizando container no ACI com a nova imagem..."
 
                 az container create \
-                  --resource-group $(resourceGroupACI) \
-                  --name $(containerName) \
-                  --image $(containerRegistry)/$(imageRepository):$(tag) \
-                  --registry-login-server $(containerRegistry) \
-                  --registry-username $(ACR_USERNAME) \
-                  --registry-password $(ACR_PASSWORD) \
-                  --dns-name-label $(containerDnsName) \
-                  --ports 8081 \
-                  --environment-variables \
-                    SPRING_PROFILES_ACTIVE=production \
-                    DB_URL=$(DB_URL) \
-                    DB_USER=$(DB_USER) \
-                    DB_DRIVER=$(DB_DRIVER) \
-                    DB_DIALECT=$(DB_DIALECT) \
-                    GITHUB_CLIENT_ID=$(GITHUB_CLIENT_ID) \
-                    GOOGLE_CLIENT_ID=$(GOOGLE_CLIENT_ID) \
-                  --secure-environment-variables \
-                    DB_PASSWORD=$(DB_PASSWORD) \
-                    APP_JWT_SECRET=$(APP_JWT_SECRET) \
-                    GITHUB_CLIENT_SECRET=$(GITHUB_CLIENT_SECRET) \
-                    GOOGLE_CLIENT_SECRET=$(GOOGLE_CLIENT_SECRET)
+                --resource-group "$(resourceGroupACR-ACI)" \
+                --name "$(containerName)" \
+                --image "$(containerRegistry)/$(imageRepository):$(tag)" \
+                --registry-login-server "$(containerRegistry)" \
+                --registry-username "$(ACR_USERNAME)" \
+                --registry-password "$(ACR_PASSWORD)" \
+                --dns-name-label "$(containerDnsName)" \
+                --ports 8081 \
+                --environment-variables \
+                  SPRING_PROFILES_ACTIVE=production \
+                  DB_URL="$(DB_URL)" \
+                  DB_USER="$(DB_USER)" \
+                  DB_DRIVER="$(DB_DRIVER)" \
+                  DB_DIALECT="$(DB_DIALECT)" \
+                  GITHUB_CLIENT_ID="$(GITHUB_CLIENT_ID)" \
+                  GOOGLE_CLIENT_ID="$(GOOGLE_CLIENT_ID)" \
+                --secure-environment-variables \
+                  DB_PASSWORD="$(DB_PASSWORD)" \
+                  APP_JWT_SECRET="$(APP_JWT_SECRET)" \
+                  GITHUB_CLIENT_SECRET="$(GITHUB_CLIENT_SECRET)" \
+                  GOOGLE_CLIENT_SECRET="$(GOOGLE_CLIENT_SECRET)"

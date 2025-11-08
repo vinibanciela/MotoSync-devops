@@ -13,7 +13,7 @@ RUN addgroup -S appgroup && adduser -S -G appgroup appuser
 
 # Copia APENAS o JAR gerado pelo Gradle
 # (Isto vai funcionar porque o seu '.\gradlew clean bootJar' já correu com sucesso)
-COPY build/libs/jar/*.jar /app/app.jar
+COPY build/libs*.jar /app/app.jar
 
 # Requisito C: Define permissões para o usuário não-root
 RUN chown -R appuser:appgroup /app
