@@ -158,6 +158,8 @@ stages:
                 --registry-password "$(ACR_PASSWORD)" \
                 --dns-name-label "$(containerDnsName)" \
                 --os-type Linux \
+                --cpu 1 \
+                --memory 1.5 \
                 --ports 8081 \
                 --environment-variables \
                   SPRING_PROFILES_ACTIVE=production \
