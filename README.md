@@ -1,4 +1,4 @@
-# MotoSync API
+# MotoSync API - Documentação Oficial
 
 **LINK DO VIDEO**: [[MotoSync]](https://youtu.be/Lxsvl0MYdp4)
 
@@ -19,7 +19,7 @@ A aplicação resolve o problema da desorganização de motos nos pátios da emp
 - **Spring Data JPA**
 - **Spring Security + JWT**
 - **Spring Cache**
-- **ThymeLeaf** 
+- **ThymeLeaf**
 - **Azure (SQL, ACR, ACI, Pipelines)**
 
 ---
@@ -111,7 +111,7 @@ git clone https://github.com/vinibanciela/MotoSync-devops.git
 cd MotoSync-devops
 
 2 - Limpe o Projeto, Compile e Empacote o Arquivo executável .Jar com Gradle
-.\gradlew clean bootJar 
+.\gradlew clean bootJar
 
 3 - Contrua a Imagem Docker e Tagueie
 docker build -t motosync-api:local .
@@ -141,7 +141,9 @@ docker rm motosync-api-local
 docker rmi motosync-api:local
 
 ```
+
 ## 🚀 Guia de Deploy (Ambiente Production - Nuvem)
+
 ```bash
 1 - Entrar na conta da Azure
 
